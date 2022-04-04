@@ -8,11 +8,26 @@ import (
 	"os/exec"
 )
 
-func main() {
+func parseArguments() (string, string) {
+	if (len(os.Args) < 2) {
+		fmt.Println("Expected at least one argument as server")
+		os.Exit(1)
+	}
 	var overrideCommand string
+	var server string
+	server = os.Args[1]
 
-	flag.StringVar(&overrideCommand, "c", "", "command to run on server")
-	flag.Parse()
+	if (len(os.Args) > 2) {
+		mySet := flag.NewFlagSet("",flag.ExitOnError)
+		mySet.StringVar(&overrideCommand, "c", "", "command to run on server")
+		mySet.Parse(os.Args[2:])
+	}
+	return server, overrideCommand
+}
+
+func main() {
+	server, overrideCommand := parseArguments()
+	fmt.Println("server to run: ", server)
 
 	cfg, err := readConf("./servers.yml", overrideCommand)
 	if err != nil {
