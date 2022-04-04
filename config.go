@@ -30,14 +30,18 @@ func readConf(fpath string, overrideCommand string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg.Command = buildCommand(cfg, overrideCommand)
+	if overrideCommand != "" {
+		cfg.Command = overrideCommand
+	}
+
+	cfg.Command = buildCommand(cfg)
 
 	fmt.Println(cfg.Command)
 
 	return cfg, nil
 }
 
-func buildCommand(cfg *Config, overrideCommand string) string {
+func buildCommand(cfg *Config) string {
 	var cmd []string
 
 	if len(cfg.Env) > 0 {
@@ -50,19 +54,13 @@ func buildCommand(cfg *Config, overrideCommand string) string {
 		cmd = append(cmd, "cd "+cfg.Location)
 	}
 
-	finalCommand := overrideCommand
-
-	if finalCommand == "" {
-		finalCommand = cfg.Command
-	}
-
-	if cfg.Shell != "" || finalCommand != "" {
-		if cfg.Shell != "" && finalCommand != "" {
-			cmd = append(cmd, fmt.Sprintf("%s -c %q", cfg.Shell, finalCommand))
+	if cfg.Shell != "" || cfg.Command != "" {
+		if cfg.Shell != "" && cfg.Command != "" {
+			cmd = append(cmd, fmt.Sprintf("%s -c %q", cfg.Shell, cfg.Command))
 		} else if cfg.Shell != "" {
 			cmd = append(cmd, cfg.Shell)
 		} else {
-			cmd = append(cmd, finalCommand)
+			cmd = append(cmd, cfg.Command)
 		}
 	}
 
