@@ -10,9 +10,10 @@ import (
 
 func parseArguments() (string, string) {
 	if (len(os.Args) < 2) {
-		fmt.Println("Expected at least one argument as server")
+		fmt.Fprintln(os.Stderr, "Expected at least one argument as server")
 		os.Exit(1)
 	}
+
 	var overrideCommand string
 	var server string
 	server = os.Args[1]
