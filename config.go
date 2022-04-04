@@ -17,7 +17,7 @@ type Config struct {
 	Env      []string `yaml:"env"`
 }
 
-func readConf(fpath string) (*Config, error) {
+func readConf(fpath string, overrideCommand string) (*Config, error) {
 	buf, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
@@ -30,14 +30,14 @@ func readConf(fpath string) (*Config, error) {
 		return nil, err
 	}
 
-	cfg.Command = buildCommand(cfg)
+	cfg.Command = buildCommand(cfg, overrideCommand)
 
 	fmt.Println(cfg.Command)
 
 	return cfg, nil
 }
 
-func buildCommand(cfg *Config) string {
+func buildCommand(cfg *Config, overrideCommand string) string {
 	var cmd []string
 
 	if len(cfg.Env) > 0 {
@@ -50,13 +50,19 @@ func buildCommand(cfg *Config) string {
 		cmd = append(cmd, "cd "+cfg.Location)
 	}
 
-	if cfg.Shell != "" || cfg.Command != "" {
-		if cfg.Shell != "" && cfg.Command != "" {
-			cmd = append(cmd, fmt.Sprintf("%s -c %q", cfg.Shell, cfg.Command))
+	finalCommand := overrideCommand
+
+	if finalCommand == "" {
+		finalCommand = cfg.Command
+	}
+
+	if cfg.Shell != "" || finalCommand != "" {
+		if cfg.Shell != "" && finalCommand != "" {
+			cmd = append(cmd, fmt.Sprintf("%s -c %q", cfg.Shell, finalCommand))
 		} else if cfg.Shell != "" {
 			cmd = append(cmd, cfg.Shell)
 		} else {
-			cmd = append(cmd, cfg.Command)
+			cmd = append(cmd, finalCommand)
 		}
 	}
 

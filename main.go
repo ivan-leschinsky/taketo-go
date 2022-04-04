@@ -1,14 +1,21 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
 )
 
+var (
+	overrideCommand = flag.String("c", "", "command to run on server")
+)
+
 func main() {
-	cfg, err := readConf("./servers.yml")
+	flag.Parse()
+
+	cfg, err := readConf("./servers.yml", *overrideCommand)
 	if err != nil {
 		log.Fatalln(err)
 	}
