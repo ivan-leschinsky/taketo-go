@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"strings"
+	"errors"
 
 	"gopkg.in/yaml.v3"
 )
@@ -44,32 +45,32 @@ func findServer(projects []*Project, serverAlias string) *Server {
 		}
 	}
 
-	var emptyServer Server = Server{}
-	return &emptyServer;
+	Exit(errors.New(fmt.Sprintf("Server not found for alias: %v", serverAlias)))
+	return nil;
 }
 
-func readConf(fpath string, serverAlias string, overrideCommand string) (*Server, error) {
+func readConf(fpath, serverAlias, overrideCommand string) (*Server, error) {
 	buf, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
 	}
 
-	entireCfg := &Config{}
+	cfg := &Config{}
 
-	err = yaml.Unmarshal(buf, entireCfg)
+	err = yaml.Unmarshal(buf, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	cfg := findServer(entireCfg.Projects, serverAlias)
+	serverConfig := findServer(cfg.Projects, serverAlias)
 
 	if overrideCommand != "" {
-		cfg.Command = overrideCommand
+		serverConfig.Command = overrideCommand
 	}
 
-	cfg.Command = buildCommand(cfg)
+	serverConfig.Command = buildCommand(serverConfig)
 
-	return cfg, nil
+	return serverConfig, nil
 }
 
 func buildCommand(cfg *Server) string {
