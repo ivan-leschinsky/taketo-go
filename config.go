@@ -20,17 +20,17 @@ type Server struct {
 }
 
 type Environment struct {
-		Name      string        `yaml:"name"`
-		Servers []*Server `yaml:"servers"`
+	Name       string    `yaml:"name"`
+	Servers    []*Server `yaml:"servers"`
 }
 
 type Project struct {
-		Name            string      `yaml:"name"`
-		Environments []*Environment `yaml:"environments"`
+	Name         string         `yaml:"name"`
+	Environments []*Environment `yaml:"environments"`
 }
 
 type Config struct {
-		Projects []*Project `yaml:"projects"`
+	Projects []*Project `yaml:"projects"`
 }
 
 func findServer(projects []*Project, serverAlias string) *Server {
