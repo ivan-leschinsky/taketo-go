@@ -8,7 +8,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Config struct {
+type ServerConfig struct {
+	Name     string   `yaml:"name"`
+	Alias    string   `yaml:"alias"`
 	Host     string   `yaml:"host"`
 	User     string   `yaml:"user"`
 	Shell    string   `yaml:"shell"`
@@ -17,18 +19,49 @@ type Config struct {
 	Env      []string `yaml:"env"`
 }
 
-func readConf(fpath string, overrideCommand string) (*Config, error) {
+type Environment struct {
+		Name      string        `yaml:"name"`
+		Servers []*ServerConfig `yaml:"servers"`
+}
+
+type Project struct {
+		Name            string      `yaml:"name"`
+		Environments []*Environment `yaml:"environments"`
+}
+
+type Config struct {
+		Projects []*Project `yaml:"projects"`
+}
+
+func findServer(projects []*Project, serverAlias string) *ServerConfig {
+	for _, project := range projects {
+		for _, environment := range project.Environments {
+			for _, server := range environment.Servers {
+				if server.Alias == serverAlias {
+					return server;
+				}
+			}
+		}
+	}
+
+	var emptyServerConfig ServerConfig = ServerConfig{}
+	return &emptyServerConfig;
+}
+
+func readConf(fpath string, serverAlias string, overrideCommand string) (*ServerConfig, error) {
 	buf, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
 	}
 
-	cfg := &Config{}
+	entireCfg := &Config{}
 
-	err = yaml.Unmarshal(buf, cfg)
+	err = yaml.Unmarshal(buf, entireCfg)
 	if err != nil {
 		return nil, err
 	}
+
+	cfg := findServer(entireCfg.Projects, serverAlias)
 
 	if overrideCommand != "" {
 		cfg.Command = overrideCommand
@@ -36,12 +69,10 @@ func readConf(fpath string, overrideCommand string) (*Config, error) {
 
 	cfg.Command = buildCommand(cfg)
 
-	fmt.Println(cfg.Command)
-
 	return cfg, nil
 }
 
-func buildCommand(cfg *Config) string {
+func buildCommand(cfg *ServerConfig) string {
 	var cmd []string
 
 	if len(cfg.Env) > 0 {

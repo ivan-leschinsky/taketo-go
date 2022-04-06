@@ -1,9 +1,15 @@
-host: host
-user: user
-# optional command
-# command: htop
-# location: /data
-# shell: bash
-# env:
-# - VAR_1=abc
-# - VAR_2=def
+---
+projects:
+- name: project1
+  environments:
+  - name: envname1
+    servers:
+    - name: server1
+      alias: s1
+      host: HOST_HERE
+      user: user
+      shell: bash
+      location: /custom/dir/if/need
+      env:
+      - VAR_1=abc
+      - VAR_2=def

@@ -37,12 +37,15 @@ func parseArguments() (string, string) {
 func main() {
 	log.SetFlags(0)
 
-	server, overrideCommand := parseArguments()
-	fmt.Println("server to run: ", server)
+	serverAlias, overrideCommand := parseArguments()
 
-	cfg, err := readConf("./servers.yml", overrideCommand)
+	cfg, err := readConf("./servers.yml", serverAlias, overrideCommand)
 	if err != nil {
 		exit(err)
+	}
+
+	if cfg.Host == "" {
+		exit(errors.New(fmt.Sprintf("Server not found for alias: %v", serverAlias)))
 	}
 
 	args := []string{fmt.Sprintf("%v@%v", cfg.User, cfg.Host)}

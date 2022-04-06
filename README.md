@@ -10,7 +10,7 @@ Simplified version of https://github.com/ivan-leschinsky/taketo ruby gem written
 
 ```sh
 go mod download
-go run .
+go run . server_alias_here
 ```
 
 ### Run unit tests
