@@ -7,12 +7,12 @@ import (
 func TestBuildCommand(t *testing.T) {
 	testCases := []struct {
 		Description string
-		Input       Config
+		Input       ServerConfig
 		Expected    string
 	}{
 		{
-			Description: "empty config",
-			Input: Config{
+			Description: "empty ServerConfig",
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "",
 				Command:  "",
@@ -22,7 +22,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "only envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "",
 				Command:  "",
@@ -32,7 +32,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "only command",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "",
 				Command:  "ls -lha",
@@ -42,7 +42,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "command and envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "",
 				Command:  "ls -lha && df -h",
@@ -52,7 +52,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "only location",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "/data",
 				Command:  "",
@@ -62,7 +62,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "location and envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "/data",
 				Command:  "",
@@ -72,7 +72,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "location and command",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "/data",
 				Command:  "ls -lha",
@@ -82,7 +82,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "location, command and envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "",
 				Location: "/data",
 				Command:  "wg genkey | sudo tee /etc/wireguard/wg0.conf",
@@ -92,7 +92,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "only shell",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "",
 				Command:  "",
@@ -102,7 +102,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "shell and envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "",
 				Command:  "",
@@ -112,7 +112,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "shell and command",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "",
 				Command:  "ls -lha",
@@ -122,7 +122,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "shell, command and envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "",
 				Command:  "ls -1 | xargs rm -f",
@@ -132,7 +132,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "shell and location",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "/data",
 				Command:  "",
@@ -142,7 +142,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "shell, location and envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "/data",
 				Command:  "",
@@ -152,7 +152,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "shell, location and command",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "/data",
 				Command:  "ls -lha",
@@ -162,7 +162,7 @@ func TestBuildCommand(t *testing.T) {
 		},
 		{
 			Description: "shell, location, command and envs",
-			Input: Config{
+			Input: ServerConfig{
 				Shell:    "zsh",
 				Location: "/data",
 				Command:  "ls -lha",
