@@ -8,7 +8,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type ServerConfig struct {
+type Server struct {
 	Name     string   `yaml:"name"`
 	Alias    string   `yaml:"alias"`
 	Host     string   `yaml:"host"`
@@ -21,7 +21,7 @@ type ServerConfig struct {
 
 type Environment struct {
 		Name      string        `yaml:"name"`
-		Servers []*ServerConfig `yaml:"servers"`
+		Servers []*Server `yaml:"servers"`
 }
 
 type Project struct {
@@ -33,7 +33,7 @@ type Config struct {
 		Projects []*Project `yaml:"projects"`
 }
 
-func findServer(projects []*Project, serverAlias string) *ServerConfig {
+func findServer(projects []*Project, serverAlias string) *Server {
 	for _, project := range projects {
 		for _, environment := range project.Environments {
 			for _, server := range environment.Servers {
@@ -44,11 +44,11 @@ func findServer(projects []*Project, serverAlias string) *ServerConfig {
 		}
 	}
 
-	var emptyServerConfig ServerConfig = ServerConfig{}
-	return &emptyServerConfig;
+	var emptyServer Server = Server{}
+	return &emptyServer;
 }
 
-func readConf(fpath string, serverAlias string, overrideCommand string) (*ServerConfig, error) {
+func readConf(fpath string, serverAlias string, overrideCommand string) (*Server, error) {
 	buf, err := ioutil.ReadFile(fpath)
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func readConf(fpath string, serverAlias string, overrideCommand string) (*Server
 	return cfg, nil
 }
 
-func buildCommand(cfg *ServerConfig) string {
+func buildCommand(cfg *Server) string {
 	var cmd []string
 
 	if len(cfg.Env) > 0 {
