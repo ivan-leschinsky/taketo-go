@@ -38,7 +38,7 @@ func main() {
 
 	serverAlias, overrideCommand := parseArguments()
 
-	cfg, err := readConf(".taketo.yml", serverAlias, overrideCommand)
+	cfg, err := readConf(fmt.Sprintf("%v/.taketo.yml", os.Getenv("HOME")), serverAlias, overrideCommand)
 	if err != nil {
 		exit(err)
 	}

@@ -1,4 +1,4 @@
-module taketogo
+module github.com/ivan-leschinsky/taketo-go
 
 go 1.17
 
