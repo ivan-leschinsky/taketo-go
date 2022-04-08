@@ -38,12 +38,12 @@ func main() {
 
 	serverAlias, overrideCommand := parseArguments()
 
-	cfg, err := readConf(fmt.Sprintf("%v/.taketo.yml", os.Getenv("HOME")), serverAlias, overrideCommand)
+	cfg, err := readConf(fmt.Sprintf("%s/.taketo.yml", os.Getenv("HOME")), serverAlias, overrideCommand)
 	if err != nil {
 		exit(err)
 	}
 
-	args := []string{fmt.Sprintf("%v@%v", cfg.User, cfg.Host)}
+	args := []string{fmt.Sprintf("%s@%s", cfg.User, cfg.Host)}
 	if len(cfg.Command) > 0 {
 		args = append(args, "-t")
 		args = append(args, cfg.Command)
