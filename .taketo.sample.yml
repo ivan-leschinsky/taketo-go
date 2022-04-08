@@ -1,0 +1,25 @@
+---
+projects:
+- name: project1
+  defaults:
+    shell: bash
+    user: user
+  servers:
+  - name: server1
+    alias: s1
+    host: HOST_HERE
+    location: /custom/dir/if/need
+    env:
+    - VAR_1=abc
+    - VAR_2=def
+  environments:
+  - name: envname1
+    defaults:
+      location: /custom/dir/if/need
+    servers:
+    - name: server2
+      alias: s2
+      host: HOST_HERE
+      env:
+      - VAR_1=abc
+      - VAR_2=def
