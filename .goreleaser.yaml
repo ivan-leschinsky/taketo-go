@@ -1,27 +1,27 @@
 ---
 env:
-- CGO_ENABLED=0
+  - CGO_ENABLED=0
 
 before:
   hooks:
-  - go mod download
+    - go mod download
 
 build:
   binary: taketo-{{ .Os }}-{{ .Arch }}
   goos:
-  - darwin
-  - linux
-  - windows
+    - darwin
+    - linux
+    - windows
   goarch:
-  - amd64
-  - arm
-  - arm64
+    - amd64
+    - arm
+    - arm64
   goarm:
-  - 7
+    - 7
 
 archives:
-- name_template: "taketo-{{ .Os }}-{{ .Arch }}"
-  format: binary
+  - name_template: "taketo-{{ .Os }}-{{ .Arch }}"
+    format: binary
 
 checksum:
   name_template: checksums.txt
