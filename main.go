@@ -1,12 +1,13 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
-	"errors"
+
 	"github.com/fatih/color"
 )
 
@@ -44,6 +45,11 @@ func main() {
 	}
 
 	args := []string{fmt.Sprintf("%s@%s", cfg.User, cfg.Host)}
+	if len(cfg.Port) > 0 {
+		args = append(args, "-p")
+		args = append(args, cfg.Port)
+	}
+
 	if len(cfg.Command) > 0 {
 		args = append(args, "-t")
 		args = append(args, cfg.Command)

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"strings"
-	"errors"
 
 	"gopkg.in/yaml.v3"
 )
@@ -14,6 +14,7 @@ type Server struct {
 	Alias    string   `yaml:"alias"`
 	Host     string   `yaml:"host"`
 	User     string   `yaml:"user"`
+	Port     string   `yaml:"port"`
 	Shell    string   `yaml:"shell"`
 	Location string   `yaml:"location"`
 	Command  string   `yaml:"command"`
@@ -23,14 +24,15 @@ type Server struct {
 type Defaults struct {
 	Host     string `yaml:"host"`
 	User     string `yaml:"user"`
+	Port     string `yaml:"port"`
 	Shell    string `yaml:"shell"`
 	Location string `yaml:"location"`
 }
 
 type Environment struct {
-	Name       string    `yaml:"name"`
-	Servers    []*Server `yaml:"servers"`
-	Defaults   *Defaults `yaml:"defaults"`
+	Name     string    `yaml:"name"`
+	Servers  []*Server `yaml:"servers"`
+	Defaults *Defaults `yaml:"defaults"`
 }
 
 type Project struct {
@@ -46,7 +48,7 @@ type Config struct {
 
 type ServersMapping struct {
 	byAlias map[string]*Server
-	byPath map[string]*Server
+	byPath  map[string]*Server
 }
 
 var serversMapping = &ServersMapping{}
@@ -58,6 +60,9 @@ func fillEmpty(server *Server, defaults *Defaults) {
 
 	if server.User == "" {
 		server.User = defaults.User
+	}
+	if server.Port == "" {
+		server.Port = defaults.Port
 	}
 	if server.Host == "" {
 		server.Host = defaults.Host
@@ -126,15 +131,15 @@ func loadConfig(fpath string) {
 
 func findServer(serverPath string) *Server {
 	server := serversMapping.byAlias[serverPath]
-	if (server == nil) {
+	if server == nil {
 		server = serversMapping.byPath[serverPath]
 	}
 
-	if (server == nil) {
+	if server == nil {
 		exit(errors.New(fmt.Sprintf("Server not found for alias or path: %v", serverPath)))
 	}
 
-	return server;
+	return server
 }
 
 func readConf(fpath, serverAlias, overrideCommand string) (*Server, error) {
