@@ -13,6 +13,16 @@ go mod download
 go run . server_alias_here
 ```
 
+### Install from source
+
+```sh
+go mod download
+go install
+```
+
+bin will be available here:
+`$GOPATH/bin/taketo-go`
+
 ### Run unit tests
 
 ```
