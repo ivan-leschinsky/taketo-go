@@ -1,4 +1,4 @@
-# taketo-go ![Version](https://img.shields.io/badge/version-0.0.9-green)
+# taketo-go ![Version](https://img.shields.io/github/v/tag/ivan-leschinsky/taketo-go?label=version)
 ![Go version](https://img.shields.io/badge/go-1.17-lightblue)
 ![Go version](https://img.shields.io/badge/go-1.18-blue)
 [![Unit Tests](https://github.com/ivan-leschinsky/taketo-go/actions/workflows/test.yml/badge.svg)](https://github.com/ivan-leschinsky/taketo-go/actions/workflows/test.yml)
@@ -9,9 +9,11 @@ Simplified version of https://github.com/ivan-leschinsky/taketo ruby gem written
 ### Install with homebrew on macOS
 
 ```sh
-brew tap ivan-leschinsky/taketo-go
-brew info ivan-leschinsky/taketo-go/taketo-go
-brew install ivan-leschinsky/taketo-go/taketo-go
+brew install ivan-leschinsky/taps/taketo-go
+
+# if it cannot see - tap manually
+brew tap ivan-leschinsky/taps
+brew install ivan-leschinsky/taps/taketo-go
 ```
 
 ### Install from source
