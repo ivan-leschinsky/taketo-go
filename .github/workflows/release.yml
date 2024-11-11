@@ -10,15 +10,11 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        go-version: [1.18]
-
     steps:
       - name: Install Golang
         uses: actions/setup-go@v3
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: 1.18
 
       - name: Checkout code
         uses: actions/checkout@v3
@@ -32,3 +28,23 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          PRIVATE_KEY_DEPLOY: ${{ secrets.PRIVATE_KEY_DEPLOY }}
+
+      - name: Get version from tag
+        id: get_version
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          VERSION=${TAG#v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Update version badge in README
+        run: |
+          sed -i "s/version-[0-9]\+\.[0-9]\+\.[0-9]\+-green/version-${VERSION}-green/" README.md
+
+      - name: Commit README changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add README.md
+          git commit -m "Update version badge to v${VERSION}" || exit 0
+          git push origin HEAD:main || echo "No changes to push"

@@ -25,7 +25,7 @@ brews:
 
     url_template: "https://github.com/ivan-leschinsky/taketo-go/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
 
-    download_strategy: NoUnzipCurlDownloadStrategy
+    download_strategy: :nounzip
 
     # Git author used to commit to the repository.
     commit_author:
@@ -41,6 +41,11 @@ brews:
     description: "A tiny helper utility to make access to servers eaiser for different projects and environments."
     license: "MIT"
 
+    test: system "#{bin}/taketo-go --version"
+
+    install: |
+      bin.install "{{ .ArtifactName }}" => "taketo-go"
+
     # Setting this will prevent goreleaser to actually try to commit the updated
     # formula - instead, the formula file will be stored on the dist directory
     # only, leaving the responsibility of publishing it to the user.
@@ -52,26 +57,14 @@ brews:
 
     repository:
       owner: ivan-leschinsky
-      name: taketo-go
+      name: homebrew-taketo-go
 
       # Optionally a branch can be provided.
       #
       # Default: default repository branch.
       # Templates: allowed.
-      # branch: main
-      branch: homebrew
-
-      # Sets up pull request creation instead of just pushing to the given branch.
-      # Make sure the 'branch' property is different from base before enabling
-      # it.
-      #
-      # This might require a personal access token.
-      pull_request:
-        # Whether to enable it or not.
-        enabled: true
-
-        # Whether to open the PR as a draft or not.
-        draft: true
+      # branch: homebrew
+      branch: main
 
       # Clone, create the file, commit and push, to a regular Git repository.
       #
@@ -81,7 +74,7 @@ brews:
         # The Git URL to push.
         #
         # Templates: allowed.
-        url: "ssh://git@github.com:ivan-leschinsky/taketo-go.git"
+        url: "git@github.com:ivan-leschinsky/homebrew-taketo-go.git"
 
         # The SSH private key that should be used to commit to the Git
         # repository.

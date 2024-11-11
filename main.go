@@ -11,7 +11,11 @@ import (
 	"github.com/fatih/color"
 )
 
-const version = "0.0.9"
+var (
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
+)
 
 func exit(err error) {
 	color.Set(color.FgRed)
@@ -21,6 +25,8 @@ func exit(err error) {
 
 func displayVersion() {
 	fmt.Printf("taketo-go version %s\n", version)
+	fmt.Printf("Git commit: %s\n", commit)
+	fmt.Printf("Built: %s\n", date)
 	os.Exit(0)
 }
 
