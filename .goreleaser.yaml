@@ -57,7 +57,7 @@ brews:
 
     repository:
       owner: ivan-leschinsky
-      name: homebrew-taketo-go
+      name: taps
 
       # Optionally a branch can be provided.
       #
@@ -74,7 +74,7 @@ brews:
         # The Git URL to push.
         #
         # Templates: allowed.
-        url: "git@github.com:ivan-leschinsky/homebrew-taketo-go.git"
+        url: "git@github.com:ivan-leschinsky/taps.git"
 
         # The SSH private key that should be used to commit to the Git
         # repository.
