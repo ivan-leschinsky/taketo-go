@@ -11,6 +11,8 @@ import (
 	"github.com/fatih/color"
 )
 
+var execCommand = exec.Command
+
 var (
 	version = "dev"
 	commit  = "none"
@@ -71,7 +73,7 @@ func main() {
 		args = append(args, cfg.Command)
 	}
 
-	cmd := exec.Command("ssh", args...)
+	cmd := execCommand("ssh", args...)
 
 	cmd.Stdin, cmd.Stdout, cmd.Stderr = os.Stdin, os.Stdout, os.Stderr
 
