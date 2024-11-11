@@ -11,23 +11,33 @@ import (
 	"github.com/fatih/color"
 )
 
+const version = "0.0.9"
+
 func exit(err error) {
 	color.Set(color.FgRed)
 	log.Fatalln(err)
 	os.Exit(1)
 }
 
+func displayVersion() {
+	fmt.Printf("taketo-go version %s\n", version)
+	os.Exit(0)
+}
+
 func parseArguments() (string, string) {
-	if (len(os.Args) < 2) {
+	if len(os.Args) < 2 {
 		exit(errors.New("Expected at least one argument as server"))
 	}
 
 	var overrideCommand string
-	var server string
-	server = os.Args[1]
+	var server = os.Args[1]
 
-	if (len(os.Args) > 2) {
-		mySet := flag.NewFlagSet("",flag.ExitOnError)
+	if server == "--version" || server == "-v" {
+		displayVersion()
+	}
+
+	if len(os.Args) > 2 {
+		mySet := flag.NewFlagSet("", flag.ExitOnError)
 		mySet.StringVar(&overrideCommand, "c", "", "command to run on server")
 		mySet.Parse(os.Args[2:])
 	}
