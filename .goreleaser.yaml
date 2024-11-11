@@ -1,24 +1,106 @@
 ---
 env:
   - CGO_ENABLED=0
-
+version: 2
 before:
   hooks:
     - go mod download
 
-build:
-  binary: taketo-{{ .Os }}-{{ .Arch }}
-  goos:
-    - darwin
-    - linux
-    - windows
-  goarch:
-    - amd64
-    - arm
-    - arm64
-  goarm:
-    - 7
+builds:
+  - binary: taketo-{{ .Os }}-{{ .Arch }}
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm
+      - arm64
+    goarm:
+      - "7"
 
+brews:
+  - name: taketo-go
+    goarm: 7
+
+    url_template: "https://github.com/ivan-leschinsky/taketo-go/releases/download/{{ .Tag }}/{{ .ArtifactName }}"
+
+    download_strategy: NoUnzipCurlDownloadStrategy
+
+    # Git author used to commit to the repository.
+    commit_author:
+      name: goreleaserbot
+      email: bot@goreleaser.com
+
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+
+    # Directory inside the repository to put the formula.
+    directory: Formula
+    homepage: "https://github.com/ivan-leschinsky/taketo-go"
+
+    description: "A tiny helper utility to make access to servers eaiser for different projects and environments."
+    license: "MIT"
+
+    # Setting this will prevent goreleaser to actually try to commit the updated
+    # formula - instead, the formula file will be stored on the dist directory
+    # only, leaving the responsibility of publishing it to the user.
+    # If set to auto, the release will not be uploaded to the homebrew tap
+    # in case there is an indicator for prerelease in the tag e.g. v1.0.0-rc1
+    #
+    # Templates: allowed.
+    skip_upload: auto
+
+    repository:
+      owner: ivan-leschinsky
+      name: taketo-go
+
+      # Optionally a branch can be provided.
+      #
+      # Default: default repository branch.
+      # Templates: allowed.
+      # branch: main
+      branch: homebrew
+
+      # Sets up pull request creation instead of just pushing to the given branch.
+      # Make sure the 'branch' property is different from base before enabling
+      # it.
+      #
+      # This might require a personal access token.
+      pull_request:
+        # Whether to enable it or not.
+        enabled: true
+
+        # Whether to open the PR as a draft or not.
+        draft: true
+
+      # Clone, create the file, commit and push, to a regular Git repository.
+      #
+      # Notice that this will only have any effect if the given URL is not
+      # empty.
+      git:
+        # The Git URL to push.
+        #
+        # Templates: allowed.
+        url: "ssh://git@github.com:ivan-leschinsky/taketo-go.git"
+
+        # The SSH private key that should be used to commit to the Git
+        # repository.
+        # This can either be a path or the key contents.
+        #
+        # IMPORTANT: the key must not be password-protected.
+        #
+        # WARNING: do not expose your private key in the configuration file!
+        #
+        # Templates: allowed.
+        private_key: "{{ .Env.PRIVATE_KEY_DEPLOY }}"
+
+        # The value to be passed to `GIT_SSH_COMMAND`.
+        # This is mainly used to specify the SSH private key used to pull/push
+        # to the Git URL.
+        #
+        # Default: 'ssh -i {{ .KeyPath }} -o StrictHostKeyChecking=accept-new -F /dev/null'.
+        # Templates: allowed.
+        #
 archives:
   - name_template: "taketo-{{ .Os }}-{{ .Arch }}"
     format: binary
