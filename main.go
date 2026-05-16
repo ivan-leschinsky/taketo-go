@@ -56,6 +56,11 @@ func parseArguments() (string, string) {
 func main() {
 	log.SetFlags(0)
 
+	if len(os.Args) > 1 && (os.Args[1] == "ls" || os.Args[1] == "list") {
+		listServers(fmt.Sprintf("%s/.taketo.yml", os.Getenv("HOME")))
+		return
+	}
+
 	serverAlias, overrideCommand := parseArguments()
 
 	cfg, err := readConf(fmt.Sprintf("%s/.taketo.yml", os.Getenv("HOME")), serverAlias, overrideCommand)

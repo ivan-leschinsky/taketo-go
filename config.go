@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/fatih/color"
 	"gopkg.in/yaml.v3"
 )
 
@@ -153,6 +154,87 @@ func readConf(fpath, serverAlias, overrideCommand string) (*Server, error) {
 	serverConfig.Command = buildCommand(serverConfig)
 
 	return serverConfig, nil
+}
+
+func listServers(fpath string) {
+	buf, err := os.ReadFile(fpath)
+	if err != nil {
+		exit(fmt.Errorf("failed to read config file from %v", fpath))
+		return
+	}
+
+	cfg := &Config{}
+	if err = yaml.Unmarshal(buf, cfg); err != nil {
+		exit(fmt.Errorf("failed to parse YAML from %v", fpath))
+		return
+	}
+
+	cyanBold := color.New(color.FgCyan, color.Bold)
+	yellow := color.New(color.FgYellow, color.Bold)
+	bold := color.New(color.Bold)
+	green := color.New(color.FgGreen)
+	dim := color.New(color.FgHiBlack)
+
+	printServer := func(prefix string, s *Server, projDefaults, envDefaults *Defaults) {
+		sc := *s
+		fillEmpty(&sc, envDefaults)
+		fillEmpty(&sc, projDefaults)
+
+		fmt.Printf("  %s ", prefix)
+		bold.Printf("%-20s", sc.Name)
+		green.Printf(" %-14s", "["+sc.Alias+"]")
+		dim.Printf(" %s@%s", sc.User, sc.Host)
+		if sc.Port != "" {
+			dim.Printf(":%s", sc.Port)
+		}
+		fmt.Println()
+	}
+
+	for pi, project := range cfg.Projects {
+		if pi > 0 {
+			fmt.Println()
+		}
+		cyanBold.Printf("  %s\n", project.Name)
+
+		total := len(project.Servers) + len(project.Environments)
+		idx := 0
+
+		for _, s := range project.Servers {
+			idx++
+			conn := "├──"
+			if idx == total {
+				conn = "└──"
+			}
+			printServer(conn, s, project.Defaults, nil)
+		}
+
+		for _, env := range project.Environments {
+			idx++
+			isLastEnv := idx == total
+			envConn := "├──"
+			if isLastEnv {
+				envConn = "└──"
+			}
+			fmt.Printf("  %s ", envConn)
+			yellow.Printf("%s\n", env.Name)
+
+			for si, s := range env.Servers {
+				isLast := si == len(env.Servers)-1
+				var serverConn string
+				switch {
+				case isLastEnv && isLast:
+					serverConn = "    └──"
+				case isLastEnv:
+					serverConn = "    ├──"
+				case isLast:
+					serverConn = "│   └──"
+				default:
+					serverConn = "│   ├──"
+				}
+				printServer(serverConn, s, project.Defaults, env.Defaults)
+			}
+		}
+	}
 }
 
 func buildCommand(cfg *Server) string {
