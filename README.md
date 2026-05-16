@@ -22,6 +22,15 @@ taketo-go ls
 taketo-go <alias>
 ```
 
+**Pro tip:** Add a short shell alias so you type even less:
+
+```sh
+# add to ~/.zshrc or ~/.bashrc
+alias to='taketo-go'
+```
+
+Then `to ls`, `to prod-web`, `to stg-wkr -c "tail -f log/production.log"` — much faster.
+
 ## Usage
 
 ```sh
