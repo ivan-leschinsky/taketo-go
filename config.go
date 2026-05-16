@@ -1,9 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -82,7 +81,7 @@ func putServerToMapping(server *Server, project *Project, environment *Environme
 	fillEmpty(server, project.Defaults)
 
 	if serversMapping.byAlias[server.Alias] != nil {
-		exit(errors.New(fmt.Sprintf("Invalid config: alias \"%v\" declared twice", server.Alias)))
+		exit(fmt.Errorf("invalid config: alias %q declared twice", server.Alias))
 	} else {
 		serversMapping.byAlias[server.Alias] = server
 	}
@@ -93,16 +92,16 @@ func putServerToMapping(server *Server, project *Project, environment *Environme
 	}
 
 	if serversMapping.byPath[serverPath] != nil {
-		exit(errors.New(fmt.Sprintf("Invalid config: server with path \"%v\" declared twice", serverPath)))
+		exit(fmt.Errorf("invalid config: server with path %q declared twice", serverPath))
 	} else {
 		serversMapping.byPath[serverPath] = server
 	}
 }
 
 func loadConfig(fpath string) {
-	buf, err := ioutil.ReadFile(fpath)
+	buf, err := os.ReadFile(fpath)
 	if err != nil {
-		exit(errors.New(fmt.Sprintf("Failed to read config file from %v", fpath)))
+		exit(fmt.Errorf("failed to read config file from %v", fpath))
 		return
 	}
 
@@ -110,7 +109,7 @@ func loadConfig(fpath string) {
 
 	err = yaml.Unmarshal(buf, cfg)
 	if err != nil {
-		exit(errors.New(fmt.Sprintf("Failed to load parse YAML from %v", fpath)))
+		exit(fmt.Errorf("failed to parse YAML from %v", fpath))
 		return
 	}
 
@@ -136,7 +135,7 @@ func findServer(serverPath string) *Server {
 	}
 
 	if server == nil {
-		exit(errors.New(fmt.Sprintf("Server not found for alias or path: %v", serverPath)))
+		exit(fmt.Errorf("server not found for alias or path: %v", serverPath))
 	}
 
 	return server

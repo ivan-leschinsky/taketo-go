@@ -8,78 +8,95 @@ import (
 	"testing"
 )
 
-// Create a testContext to hold our testing state
-type testContext struct {
-	exitCode int
-	exited   bool
-}
-
 func TestVersionFlag(t *testing.T) {
-	// Save original args and restore after test
 	originalArgs := os.Args
 	defer func() { os.Args = originalArgs }()
 
-	// Capture stdout
+	originalOsExit := osExit
+	defer func() { osExit = originalOsExit }()
+
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	os.Stdout = w
-	defer func() {
-		os.Stdout = oldStdout
-	}()
+	defer func() { os.Stdout = oldStdout }()
 
-	testCases := []struct {
-		name     string
-		args     []string
-		expected []string
-	}{
-		{
-			name: "long version flag",
-			args: []string{"program", "--version"},
-			expected: []string{
-				"taketo-go version " + version,
-				"Git commit: " + commit,
-				"Built: " + date,
-			},
-		},
+	var exitCode int
+	osExit = func(code int) {
+		exitCode = code
+		panic("os.Exit called")
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			// Set up test args
-			os.Args = tc.args
+	os.Args = []string{"program", "--version"}
 
-			// Capture panic from displayVersion
-			defer func() {
-				if r := recover(); r == nil {
-					t.Error("Expected panic from displayVersion, got none")
-				}
+	func() {
+		defer func() { recover() }() //nolint:errcheck
+		parseArguments()
+	}()
 
-				// Close pipe and read output
-				w.Close()
-				var buf bytes.Buffer
-				_, _ = buf.ReadFrom(r)
-				output := buf.String()
+	w.Close()
+	var buf bytes.Buffer
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
 
-				// Check each expected line
-				for _, expected := range tc.expected {
-					if !strings.Contains(output, expected) {
-						t.Errorf("Expected output to contain %q", expected)
-					}
-				}
-			}()
+	if exitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", exitCode)
+	}
 
-			// Call the function being tested
-			parseArguments()
-		})
+	expected := []string{
+		"taketo-go version " + version,
+		"Git commit: " + commit,
+		"Built: " + date,
+	}
+	for _, want := range expected {
+		if !strings.Contains(output, want) {
+			t.Errorf("expected output to contain %q, got:\n%s", want, output)
+		}
+	}
+}
+
+func TestVersionShortFlag(t *testing.T) {
+	originalArgs := os.Args
+	defer func() { os.Args = originalArgs }()
+
+	originalOsExit := osExit
+	defer func() { osExit = originalOsExit }()
+
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	defer func() { os.Stdout = oldStdout }()
+
+	var exitCode int
+	osExit = func(code int) {
+		exitCode = code
+		panic("os.Exit called")
+	}
+
+	os.Args = []string{"program", "-v"}
+
+	func() {
+		defer func() { recover() }() //nolint:errcheck
+		parseArguments()
+	}()
+
+	w.Close()
+	var buf bytes.Buffer
+	_, _ = buf.ReadFrom(r)
+	output := buf.String()
+
+	if exitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", exitCode)
+	}
+
+	if !strings.Contains(output, "taketo-go version") {
+		t.Errorf("expected version string in output, got:\n%s", output)
 	}
 }
 
 func TestMainExecutesSSHCommand(t *testing.T) {
-	// Save original args and restore after test
 	originalArgs := os.Args
 	defer func() { os.Args = originalArgs }()
 
-	// Create a temporary config file
 	tmpConfig := `projects:
   - name: testproject
     servers:
@@ -90,25 +107,16 @@ func TestMainExecutesSSHCommand(t *testing.T) {
         port: "2222"
         command: "ls -la"
 `
-	// Save original HOME env var and set it to temp directory
 	originalHome := os.Getenv("HOME")
-	tmpDir := os.TempDir()
+	tmpDir := t.TempDir()
 	os.Setenv("HOME", tmpDir)
 	defer os.Setenv("HOME", originalHome)
 
-	// Create .taketo.yml in temp HOME directory
 	configPath := tmpDir + "/.taketo.yml"
-
 	if err := os.WriteFile(configPath, []byte(tmpConfig), 0644); err != nil {
-		t.Fatalf("Failed to write config file: %v", err)
+		t.Fatalf("failed to write config file: %v", err)
 	}
-	defer func() {
-		if err := os.Remove(configPath); err != nil {
-			t.Logf("Failed to remove test config: %v", err)
-		}
-	}()
 
-	// Save original execCommand
 	originalExecCommand := execCommand
 	defer func() { execCommand = originalExecCommand }()
 
@@ -118,49 +126,41 @@ func TestMainExecutesSSHCommand(t *testing.T) {
 		expectedArgs []string
 	}{
 		{
-			name: "basic server connection",
+			name: "connection by alias",
 			args: []string{"program", "test"},
 			expectedArgs: []string{
 				"testuser@example.com",
-				"-p",
-				"2222",
-				"-t",
-				"ls -la",
+				"-p", "2222",
+				"-t", "ls -la",
 			},
 		},
 		{
-			name: "basic server connection",
+			name: "connection by path",
 			args: []string{"program", "testproject:testserver"},
 			expectedArgs: []string{
 				"testuser@example.com",
-				"-p",
-				"2222",
-				"-t",
-				"ls -la",
+				"-p", "2222",
+				"-t", "ls -la",
 			},
 		},
 		{
-			name: "server with override command",
+			name: "connection with override command",
 			args: []string{"program", "test", "-c", "echo hello"},
 			expectedArgs: []string{
 				"testuser@example.com",
-				"-p",
-				"2222",
-				"-t",
-				"echo hello",
+				"-p", "2222",
+				"-t", "echo hello",
 			},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			// Set up test args
 			os.Args = tc.args
 
 			var executedCommand string
 			var executedArgs []string
 
-			// Mock execCommand
 			execCommand = func(command string, args ...string) *exec.Cmd {
 				executedCommand = command
 				executedArgs = args
@@ -171,28 +171,21 @@ func TestMainExecutesSSHCommand(t *testing.T) {
 				}
 			}
 
-			// Run main
 			main()
 
-			// Verify the command
 			if executedCommand != "ssh" {
-				t.Errorf("Expected command 'ssh', got %s", executedCommand)
+				t.Errorf("expected command 'ssh', got %s", executedCommand)
 			}
 
-			// Verify arguments
 			if len(executedArgs) != len(tc.expectedArgs) {
-				t.Errorf("Expected %d arguments, got %d\nExpected: %v\nGot: %v",
-					len(tc.expectedArgs), len(executedArgs),
-					tc.expectedArgs, executedArgs)
+				t.Errorf("expected %d arguments, got %d\nexpected: %v\ngot:      %v",
+					len(tc.expectedArgs), len(executedArgs), tc.expectedArgs, executedArgs)
+				return
 			}
 
-			for i, arg := range tc.expectedArgs {
-				if i >= len(executedArgs) {
-					t.Errorf("Missing expected argument at position %d: %s", i, arg)
-					continue
-				}
-				if executedArgs[i] != arg {
-					t.Errorf("Expected argument %d to be %s, got %s", i, arg, executedArgs[i])
+			for i, want := range tc.expectedArgs {
+				if executedArgs[i] != want {
+					t.Errorf("arg[%d]: expected %q, got %q", i, want, executedArgs[i])
 				}
 			}
 		})

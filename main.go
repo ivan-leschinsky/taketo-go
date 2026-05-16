@@ -12,6 +12,7 @@ import (
 )
 
 var execCommand = exec.Command
+var osExit = os.Exit
 
 var (
 	version = "dev"
@@ -21,15 +22,15 @@ var (
 
 func exit(err error) {
 	color.Set(color.FgRed)
-	log.Fatalln(err)
-	os.Exit(1)
+	log.Println(err)
+	osExit(1)
 }
 
 func displayVersion() {
 	fmt.Printf("taketo-go version %s\n", version)
 	fmt.Printf("Git commit: %s\n", commit)
 	fmt.Printf("Built: %s\n", date)
-	os.Exit(0)
+	osExit(0)
 }
 
 func parseArguments() (string, string) {
