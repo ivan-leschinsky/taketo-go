@@ -1,6 +1,5 @@
 # taketo-go ![Version](https://img.shields.io/github/v/tag/ivan-leschinsky/taketo-go?label=version)
-![Go version](https://img.shields.io/badge/go-1.17-lightblue)
-![Go version](https://img.shields.io/badge/go-1.18-blue)
+![Go version](https://img.shields.io/badge/go-1.24-blue)
 [![Unit Tests](https://github.com/ivan-leschinsky/taketo-go/actions/workflows/test.yml/badge.svg)](https://github.com/ivan-leschinsky/taketo-go/actions/workflows/test.yml)
 
 Simplified version of https://github.com/ivan-leschinsky/taketo ruby gem written in go
