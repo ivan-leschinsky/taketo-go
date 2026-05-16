@@ -2,7 +2,7 @@
 ![Go version](https://img.shields.io/badge/go-1.24-blue)
 [![Unit Tests](https://github.com/ivan-leschinsky/taketo-go/actions/workflows/test.yml/badge.svg)](https://github.com/ivan-leschinsky/taketo-go/actions/workflows/test.yml)
 
-Ever get tired of remembering which user, host, and port to use for each of your servers? `taketo-go` lets you define all your servers once in a simple YAML file and connect to any of them with a short alias — no more hunting through notes or `.ssh/config`.
+**[taketo.vano.dev](https://taketo.vano.dev)** · Ever get tired of remembering which user, host, and port to use for each of your servers? `taketo-go` lets you define all your servers once in a simple YAML file and connect to any of them with a short alias — no more hunting through notes or `.ssh/config`.
 
 It's especially handy when you work across multiple projects and environments (staging, production, etc.), each with their own set of servers. Define defaults at the project or environment level, and individual servers inherit what they need.
 
@@ -141,6 +141,8 @@ Run `taketo-go ls` to see all servers in a tree view:
 `defaults` (at project or environment level) supports: `host`, `user`, `port`, `shell`, `location`.
 
 ## Install
+
+More details and examples at **[taketo.vano.dev](https://taketo.vano.dev)**.
 
 ### Homebrew (macOS)
 
