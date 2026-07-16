@@ -43,8 +43,14 @@ taketo-go <project:environment:server> # connect in a specific environment
 
 taketo-go <alias> -c "docker ps -a"   # run a one-off command instead of default
 
+taketo-go aliases                      # print every alias/path (used for completion)
+taketo-go completion <zsh|bash|fish>   # print a shell completion script
 taketo-go --version                    # show version info
 ```
+
+If you pass an alias that doesn't exist (or a typo), taketo-go opens an
+interactive fuzzy picker pre-filled with what you typed — just narrow it down and
+hit enter instead of re-running the command.
 
 ## Config examples
 
@@ -126,19 +132,118 @@ Run `taketo-go ls` to see all servers in a tree view:
 
 ### Available server fields
 
-| Field      | Description                                      |
-|------------|--------------------------------------------------|
-| `name`     | Human-readable name                              |
-| `alias`    | Short unique identifier for quick access         |
-| `host`     | Hostname or IP address                           |
-| `user`     | SSH username                                     |
-| `port`     | SSH port (default: 22)                           |
-| `shell`    | Shell to open (`bash`, `zsh`, etc.)              |
-| `location` | Working directory to `cd` into on connect        |
-| `command`  | Default command to run on the server             |
-| `env`      | List of `KEY=value` environment variables to set |
+| Field             | Description                                                              |
+|-------------------|--------------------------------------------------------------------------|
+| `name`            | Human-readable name                                                      |
+| `alias`           | Short unique identifier for quick access                                 |
+| `aliases`         | List of extra aliases pointing at the same server                        |
+| `host`            | Hostname or IP address                                                   |
+| `hosts`           | List of hosts to try in order (first reachable wins) — see fallback      |
+| `user`            | SSH username                                                             |
+| `port`            | SSH port (default: 22)                                                   |
+| `shell`           | Shell to open (`bash`, `zsh`, etc.)                                      |
+| `location`        | Working directory to `cd` into on connect                               |
+| `command`         | Default command to run on the server (a bare name looks up `commands:`)  |
+| `env`             | List of `KEY=value` environment variables to set                        |
+| `identity`        | Path to an SSH private key (`ssh -i`)                                    |
+| `forward`         | List of `local:host:remote` port forwards (`ssh -L`)                    |
+| `ssh_options`     | Extra raw flags passed straight to `ssh` (e.g. `-o`, `-J`, ciphers)     |
+| `connect_timeout` | Seconds to wait per host when using `hosts` fallback (default: 2)        |
+| `targets`         | Extra entry points on the same server — see below                        |
 
-`defaults` (at project or environment level) supports: `host`, `user`, `port`, `shell`, `location`.
+`defaults` (at project or environment level) supports every field above except
+`name`, `alias`/`aliases`, and `targets`.
+
+Environments are optional — you can list `servers:` directly under a `project`
+(with its own `defaults`) and skip the extra nesting level entirely.
+
+### Multiple aliases
+
+```yaml
+- name: web
+  aliases: [web, w, prod-web]   # any of these connect to the same server
+  host: 1.2.3.4
+```
+
+### Targets — one server, many entry points
+
+Instead of copy-pasting a server just to `cd` into a different folder or run a
+different command, define `targets`. Each target inherits everything from the
+parent server and overrides only what it needs:
+
+```yaml
+- name: vm
+  alias: vm
+  host: 1.2.3.4
+  user: root
+  shell: fish -l
+  targets:
+    - { alias: app,     location: /srv/app }
+    - { alias: app-log, location: /srv/app, command: ./log }
+    - { aliases: [worker, wkr], location: /srv/worker }
+```
+
+`taketo-go app-log` connects to the same box, `cd`s into `/srv/app`, and runs
+`./log`. Targets support `alias` and `aliases`, and override any server field.
+
+### Host fallback
+
+Give a server several addresses and taketo-go connects to the first one that
+answers (a quick TCP probe with `connect_timeout`, default 2s):
+
+```yaml
+- name: valid
+  alias: valid
+  hosts: ["10.0.0.5", "valid.internal.example.com"]
+  connect_timeout: 2
+```
+
+### Custom ssh flags, keys and tunnels
+
+```yaml
+- name: old-switch
+  alias: sw
+  host: 192.168.0.10
+  identity: ~/.ssh/id_legacy
+  forward: ["8080:localhost:80"]
+  ssh_options: ["-o", "KexAlgorithms=+diffie-hellman-group1-sha1"]
+```
+
+### Reusable named commands
+
+Define commands once at the top level and reference them by name from any
+server's `command:` field:
+
+```yaml
+commands:
+  - name: log
+    command: tail -f log/production.log
+
+projects:
+  - name: myapp
+    servers:
+      - name: web
+        alias: web
+        host: 1.2.3.4
+        command: log        # expands to "tail -f log/production.log"
+```
+
+### Shell completion
+
+taketo-go can complete aliases and project paths. Add the matching line to your
+shell config (pass your shell alias as a second arg so completion works for it too):
+
+```sh
+# zsh (~/.zshrc)
+eval "$(taketo-go completion zsh)"
+eval "$(taketo-go completion zsh to)"     # if you aliased `to=taketo-go`
+
+# bash (~/.bashrc)
+eval "$(taketo-go completion bash)"
+
+# fish (~/.config/fish/config.fish)
+taketo-go completion fish | source
+```
 
 ## Install
 

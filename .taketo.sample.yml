@@ -1,25 +1,74 @@
 ---
+# Reusable commands, referenced by name from a server's `command:` field.
+commands:
+  - name: log
+    command: tail -f log/production.log
+
 projects:
-- name: project1
-  defaults:
-    shell: bash
-    user: user
-  servers:
-  - name: server1
-    alias: s1
-    host: HOST_HERE
-    location: /custom/dir/if/need
-    env:
-    - VAR_1=abc
-    - VAR_2=def
-  environments:
-  - name: envname1
+  # Environments are optional — list servers straight under the project.
+  - name: project1
     defaults:
-      location: /custom/dir/if/need
+      shell: bash
+      user: user
     servers:
-    - name: server2
-      alias: s2
-      host: HOST_HERE
-      env:
-      - VAR_1=abc
-      - VAR_2=def
+      - name: server1
+        aliases: [s1, web]          # multiple aliases -> same server
+        host: HOST_HERE
+        location: /custom/dir/if/need
+        env:
+          - VAR_1=abc
+          - VAR_2=def
+
+      # One server, several entry points (each inherits from the parent).
+      - name: vm
+        alias: vm
+        host: HOST_HERE
+        targets:
+          - { alias: vm-log, location: /srv/app, command: log }
+          - { aliases: [vm-cfg, cfg], location: /etc/app }
+
+  # Host fallback: connect to the first address that answers.
+  - name: project2
+    defaults:
+      user: root
+    servers:
+      - name: db
+        alias: db
+        hosts: ["10.0.0.5", "db.internal.example.com"]
+        connect_timeout: 2
+        identity: ~/.ssh/id_db
+        forward: ["5432:localhost:5432"]
+        ssh_options: ["-o", "ServerAliveInterval=30"]
+
+  # Classic project -> environment -> servers layout still works.
+  # Useful when the same roles (web/worker) exist per environment.
+  - name: project3
+    defaults:
+      shell: bash
+      user: deploy
+    environments:
+      - name: staging
+        defaults:
+          location: /var/www/app
+        servers:
+          - name: web
+            alias: stg-web
+            host: stg-web.example.com
+          - name: worker
+            alias: stg-wkr
+            host: stg-worker.example.com
+
+      - name: production
+        defaults:
+          location: /var/www/app
+        servers:
+          - name: web
+            alias: prd-web
+            host: prd-web.example.com
+            port: "2222"
+          - name: worker
+            alias: prd-wkr
+            host: prd-worker.example.com
+            env:
+              - RAILS_ENV=production
+              - LOG_LEVEL=warn

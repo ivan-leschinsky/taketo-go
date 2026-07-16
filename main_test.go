@@ -164,11 +164,9 @@ func TestMainExecutesSSHCommand(t *testing.T) {
 			execCommand = func(command string, args ...string) *exec.Cmd {
 				executedCommand = command
 				executedArgs = args
-				return &exec.Cmd{
-					Stdout: os.Stdout,
-					Stderr: os.Stderr,
-					Stdin:  os.Stdin,
-				}
+				// Return a harmless real command so cmd.Run() succeeds; main()
+				// now checks the run error and would exit on failure.
+				return exec.Command("true")
 			}
 
 			main()
