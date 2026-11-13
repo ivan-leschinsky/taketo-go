@@ -117,9 +117,6 @@ func chooseHost(cfg *Server) string {
 		timeout = defaultConnectTimeout
 	}
 
-	if len(hosts) > 1 {
-		fmt.Fprintf(os.Stderr, "trying %d hosts (timeout %s)...\n", len(hosts), timeout)
-	}
 	return selectHost(hosts, cfg.Port, timeout)
 }
 
