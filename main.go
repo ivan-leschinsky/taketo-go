@@ -117,6 +117,10 @@ func buildSSHArgs(cfg *Server, host string) []string {
 	args := []string{fmt.Sprintf("%s@%s", cfg.User, host)}
 
 	args = append(args, cfg.SSHOptions...)
+	if len(cfg.SSHEnv) > 0 {
+		// ponytail: values with spaces need ssh_config quoting, add when someone needs it
+		args = append(args, "-o", "SetEnv="+strings.Join(cfg.SSHEnv, " "))
+	}
 	if cfg.Identity != "" {
 		args = append(args, "-i", cfg.Identity)
 	}

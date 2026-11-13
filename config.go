@@ -21,6 +21,7 @@ type Server struct {
 	Location       string    `yaml:"location"`
 	Command        string    `yaml:"command"`
 	Env            []string  `yaml:"env"`
+	SSHEnv         []string  `yaml:"ssh_env"`
 	Identity       string    `yaml:"identity"`
 	Forward        []string  `yaml:"forward"`
 	SSHOptions     []string  `yaml:"ssh_options"`
@@ -37,6 +38,7 @@ type Defaults struct {
 	Location       string   `yaml:"location"`
 	Command        string   `yaml:"command"`
 	Env            []string `yaml:"env"`
+	SSHEnv         []string `yaml:"ssh_env"`
 	Identity       string   `yaml:"identity"`
 	Forward        []string `yaml:"forward"`
 	SSHOptions     []string `yaml:"ssh_options"`
@@ -104,6 +106,9 @@ func fillEmpty(server *Server, defaults *Defaults) {
 	if len(server.Env) == 0 {
 		server.Env = defaults.Env
 	}
+	if len(server.SSHEnv) == 0 {
+		server.SSHEnv = defaults.SSHEnv
+	}
 	if server.Identity == "" {
 		server.Identity = defaults.Identity
 	}
@@ -144,6 +149,9 @@ func inheritServer(target, parent *Server) {
 	}
 	if len(target.Env) == 0 {
 		target.Env = parent.Env
+	}
+	if len(target.SSHEnv) == 0 {
+		target.SSHEnv = parent.SSHEnv
 	}
 	if target.Identity == "" {
 		target.Identity = parent.Identity
