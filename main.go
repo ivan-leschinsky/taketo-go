@@ -5,10 +5,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"math"
 	"net"
 	"os"
 	"os/exec"
+	"runtime"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -63,6 +66,13 @@ func parseArguments() (string, string) {
 // probeHost reports whether a TCP connection to addr succeeds within timeout.
 // It is a variable so tests can stub network access.
 var probeHost = func(addr string, timeout time.Duration) bool {
+	// macOS "Local Network" privacy blocks third-party binaries from the Mac's own
+	// subnet (EHOSTUNREACH) while Apple's nc/ssh are allowed, so probe with nc there.
+	if runtime.GOOS == "darwin" {
+		host, port, _ := net.SplitHostPort(addr)
+		secs := strconv.Itoa(int(math.Ceil(timeout.Seconds())))
+		return exec.Command("/usr/bin/nc", "-z", "-G", secs, host, port).Run() == nil
+	}
 	conn, err := net.DialTimeout("tcp", addr, timeout)
 	if err != nil {
 		return false
