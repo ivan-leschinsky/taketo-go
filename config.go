@@ -194,38 +194,53 @@ func registerPath(path string, server *Server) {
 	serversMapping.byPath[path] = server
 }
 
+// fillNames lets a server be written with only a name or only aliases:
+// no name -> first alias; no aliases -> the name, unless another server already
+// owns it (old configs repeat names like "web" per environment).
+// ponytail: "already owns" is first-come in config order.
+func fillNames(s *Server) {
+	if aliases := serverAliases(s); s.Name == "" && len(aliases) > 0 {
+		s.Name = aliases[0]
+	}
+	if len(serverAliases(s)) == 0 && s.Name != "" && serversMapping.byAlias[s.Name] == nil {
+		s.Alias = s.Name
+	}
+}
+
 func registerServer(server *Server, project *Project, environment *Environment, path string) {
 	if environment != nil {
 		fillEmpty(server, environment.Defaults)
 	}
 	fillEmpty(server, project.Defaults)
 	resolveCommand(server)
+	fillNames(server)
 
 	for _, alias := range serverAliases(server) {
 		registerAlias(alias, server)
 	}
-	registerPath(path, server)
+	registerPath(path+server.Name, server)
 	serversMapping.all = append(serversMapping.all, server)
 
 	for _, target := range server.Targets {
 		inheritServer(target, server)
 		resolveCommand(target)
+		fillNames(target)
 
 		for _, alias := range serverAliases(target) {
 			registerAlias(alias, target)
 		}
 		if target.Name != "" {
-			registerPath(path+":"+target.Name, target)
+			registerPath(path+server.Name+":"+target.Name, target)
 		}
 		serversMapping.all = append(serversMapping.all, target)
 	}
 }
 
-func loadConfig(fpath string) {
+func loadConfig(fpath string) *Config {
 	buf, err := os.ReadFile(fpath)
 	if err != nil {
 		exit(fmt.Errorf("failed to read config file from %v", fpath))
-		return
+		return nil
 	}
 
 	cfg := &Config{}
@@ -233,7 +248,7 @@ func loadConfig(fpath string) {
 	err = yaml.Unmarshal(buf, cfg)
 	if err != nil {
 		exit(fmt.Errorf("failed to parse YAML from %v", fpath))
-		return
+		return nil
 	}
 
 	serversMapping.byAlias = make(map[string]*Server)
@@ -247,14 +262,15 @@ func loadConfig(fpath string) {
 
 	for _, project := range cfg.Projects {
 		for _, server := range project.Servers {
-			registerServer(server, project, nil, project.Name+":"+server.Name)
+			registerServer(server, project, nil, project.Name+":")
 		}
 		for _, environment := range project.Environments {
 			for _, server := range environment.Servers {
-				registerServer(server, project, environment, project.Name+":"+environment.Name+":"+server.Name)
+				registerServer(server, project, environment, project.Name+":"+environment.Name+":")
 			}
 		}
 	}
+	return cfg
 }
 
 // findServer resolves a server by alias first, then by path. Returns nil when
@@ -284,15 +300,8 @@ func readConf(fpath, serverAlias, overrideCommand string) (*Server, error) {
 }
 
 func listServers(fpath string) {
-	buf, err := os.ReadFile(fpath)
-	if err != nil {
-		exit(fmt.Errorf("failed to read config file from %v", fpath))
-		return
-	}
-
-	cfg := &Config{}
-	if err = yaml.Unmarshal(buf, cfg); err != nil {
-		exit(fmt.Errorf("failed to parse YAML from %v", fpath))
+	cfg := loadConfig(fpath) // same names/aliases/defaults as connecting
+	if cfg == nil {
 		return
 	}
 
