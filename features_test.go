@@ -165,11 +165,13 @@ func TestBuildSSHArgs(t *testing.T) {
 		Identity:   "/k",
 		Forward:    []string{"8080:localhost:80"},
 		SSHOptions: []string{"-o", "KexAlgorithms=+diffie-hellman-group1-sha1"},
+		SSHEnv:     []string{"TERM=xterm-256color", "LANG=C.UTF-8"},
 	}
 	got := buildSSHArgs(s, "host")
 	want := []string{
 		"u@host",
 		"-o", "KexAlgorithms=+diffie-hellman-group1-sha1",
+		"-o", "SetEnv=TERM=xterm-256color LANG=C.UTF-8",
 		"-i", "/k",
 		"-L", "8080:localhost:80",
 		"-p", "2222",
@@ -273,5 +275,22 @@ func TestFewerNamesNameTakenIsNotFatal(t *testing.T) {
 	}
 	if s := findServer("p:prd:web"); s == nil || s.Host != "b" {
 		t.Fatalf("second server still reachable by path: %+v", s)
+	}
+}
+
+func TestSSHEnvFromDefaults(t *testing.T) {
+	cfg := `projects:
+  - name: p
+    defaults: { user: u, ssh_env: [TERM=xterm-256color] }
+    servers:
+      - name: s
+        host: h
+        targets: [{ name: t, location: /x }]
+`
+	loadConfig(writeTempConfig(t, cfg))
+	for _, a := range []string{"s", "t"} {
+		if got := findServer(a).SSHEnv; len(got) != 1 || got[0] != "TERM=xterm-256color" {
+			t.Errorf("%s: ssh_env not inherited: %v", a, got)
+		}
 	}
 }

@@ -145,6 +145,7 @@ Run `taketo-go ls` to see all servers in a tree view:
 | `location`        | Working directory to `cd` into on connect                               |
 | `command`         | Default command to run on the server (a bare name looks up `commands:`)  |
 | `env`             | List of `KEY=value` environment variables to set                        |
+| `ssh_env`         | `KEY=value` list sent by ssh itself (`-o SetEnv`), e.g. `TERM=xterm-256color` |
 | `identity`        | Path to an SSH private key (`ssh -i`)                                    |
 | `forward`         | List of `local:host:remote` port forwards (`ssh -L`)                    |
 | `ssh_options`     | Extra raw flags passed straight to `ssh` (e.g. `-o`, `-J`, ciphers)     |
