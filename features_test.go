@@ -220,3 +220,58 @@ func TestPickServerUsesTypedQuery(t *testing.T) {
 		t.Errorf("picker returned wrong server: %+v", s)
 	}
 }
+
+func TestFewerNames(t *testing.T) {
+	cfg := `projects:
+  - name: home
+    defaults: { user: root }
+    servers:
+      - name: nvr                 # name only -> also the alias
+        host: 100.75.112.42
+      - aliases: [syno, s]        # aliases only -> name = first alias
+        host: 192.168.1.235
+        targets:
+          - { name: logs, location: /var/log }   # target name -> alias
+      - name: web                 # explicit alias wins, name is not claimed
+        alias: w
+        host: h
+`
+	p := writeTempConfig(t, cfg)
+	loadConfig(p)
+
+	if s := findServer("nvr"); s == nil || s.Host != "100.75.112.42" {
+		t.Fatalf("name-only server not reachable by its name: %+v", s)
+	}
+	if s := findServer("s"); s == nil || s.Name != "syno" {
+		t.Fatalf("aliases-only server should get name from first alias: %+v", s)
+	}
+	if s := findServer("home:syno"); s == nil {
+		t.Fatal("path from defaulted name missing")
+	}
+	if s := findServer("logs"); s == nil || s.Location != "/var/log" || s.User != "root" {
+		t.Fatalf("target name should act as alias and inherit: %+v", s)
+	}
+	if s := findServer("web"); s != nil {
+		t.Fatalf("server with explicit alias must not also claim its name: %+v", s)
+	}
+}
+
+func TestFewerNamesNameTakenIsNotFatal(t *testing.T) {
+	// Two alias-less servers with the same name in different environments
+	// (old configs) must still load; the first one keeps the bare name.
+	cfg := `projects:
+  - name: p
+    environments:
+      - name: stg
+        servers: [{ name: web, host: a }]
+      - name: prd
+        servers: [{ name: web, host: b }]
+`
+	loadConfig(writeTempConfig(t, cfg))
+	if s := findServer("web"); s == nil || s.Host != "a" {
+		t.Fatalf("first server should own the bare name: %+v", s)
+	}
+	if s := findServer("p:prd:web"); s == nil || s.Host != "b" {
+		t.Fatalf("second server still reachable by path: %+v", s)
+	}
+}

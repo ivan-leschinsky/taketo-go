@@ -134,7 +134,7 @@ Run `taketo-go ls` to see all servers in a tree view:
 
 | Field             | Description                                                              |
 |-------------------|--------------------------------------------------------------------------|
-| `name`            | Human-readable name                                                      |
+| `name`            | Human-readable name (defaults to the first alias; doubles as alias if none) |
 | `alias`           | Short unique identifier for quick access                                 |
 | `aliases`         | List of extra aliases pointing at the same server                        |
 | `host`            | Hostname or IP address                                                   |
@@ -156,6 +156,25 @@ Run `taketo-go ls` to see all servers in a tree view:
 
 Environments are optional — you can list `servers:` directly under a `project`
 (with its own `defaults`) and skip the extra nesting level entirely.
+
+### Fewer names
+
+`name` and `alias` fill each other in, so one is enough:
+
+```yaml
+projects:
+- name: home
+  defaults: { user: root }
+  servers:
+  - name: nvr              # `taketo-go nvr`, path home:nvr
+    host: 100.75.112.42
+  - aliases: [syno, s]     # name = syno
+    host: 192.168.1.235
+```
+
+A server without `alias`/`aliases` answers to its `name`, unless an earlier
+server already took it (repeated names like `web` per environment stay
+reachable by path). Targets work the same way.
 
 ### Multiple aliases
 
